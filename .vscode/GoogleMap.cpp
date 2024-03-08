@@ -50,18 +50,27 @@ if(curl)
         {
             cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << '\n';
         }
+        
+        else 
+        {
+            cout << readBuffer << endl;
+        }
 
         curl_free(escaped_address);
-    } else 
+    } 
+    
+    else 
+        {
+            cerr << "Failed to escape address" << '\n';
+        }
+
+    curl_easy_cleanup(curl);
+    } 
+    
+    else 
     {
-        cerr << "Failed to escape address" << '\n';
+        cerr << "Failed to initialize cURL" << '\n';
     }
-    curl_easy_cleanup(curl);
-} else 
-{
-    cerr << "Failed to initialize cURL" << '\n';
-}
-    curl_easy_cleanup(curl);
 }
 
 int main() 
