@@ -51,5 +51,4 @@ https://mapsplatform.google.com/
 
 https://bridgesuncc.github.io/assignments/data//4-GraphEQ/README.html
 
-https://bridgesuncc.github.io/doc/cxx-api/current/html/classbridges_1_1datastructure_1_1_elem
-ent.html
+https://bridgesuncc.github.io/doc/cxx-api/current/html/classbridges_1_1datastructure_1_1_element.html
