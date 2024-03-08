@@ -42,3 +42,14 @@ which will allow users to visualize earthquakes by location.
 
 ● Shayan Akhoondan: Backend management of earthquake dataset, ensuring data
 integrity, relevance, and working on algorithm analysis to prepare data effectively.
+
+References:
+
+https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
+
+https://mapsplatform.google.com/
+
+https://bridgesuncc.github.io/assignments/data//4-GraphEQ/README.html
+
+https://bridgesuncc.github.io/doc/cxx-api/current/html/classbridges_1_1datastructure_1_1_elem
+ent.html
