@@ -2,11 +2,80 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 #include <algorithm>
 #include <iomanip>
+#include <list>
+
+// Custom hash function for strings
+size_t customHash(const std::string& key, size_t tableSize) {
+    size_t hash = 0;
+    for (char ch : key) {
+        hash = (hash * 31 + ch) % tableSize; // Simple hash function using prime number 31
+    }
+    return hash;
+}
+
+template<typename T>
+class HashNode {
+public:
+    T value;
+    HashNode<T>* next;
+
+    HashNode(const T& val) : value(val), next(nullptr) {}
+};
+
+template<typename T>
+class HashSet {
+private:
+    std::vector<std::list<HashNode<T>*>> table;
+    size_t size;
+
+public:
+    HashSet(size_t initialSize = 100) : table(initialSize), size(0) {}
+
+    ~HashSet() {
+        clear();
+    }
+
+    bool insert(const T& value) {
+        size_t index = customHash(value, table.size());
+        for (auto& node : table[index]) {
+            if (node->value == value) {
+                return false; // Value already exists
+            }
+        }
+
+        HashNode<T>* newNode = new HashNode<T>(value);
+        table[index].push_back(newNode);
+        ++size;
+        return true;
+    }
+
+    bool contains(const T& value) const {
+        size_t index = customHash(value, table.size());
+        for (auto& node : table[index]) {
+            if (node->value == value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void clear() {
+        for (auto& bucket : table) {
+            for (auto& node : bucket) {
+                delete node;
+            }
+            bucket.clear();
+        }
+        size = 0;
+    }
+
+    size_t getSize() const {
+        return size;
+    }
+};
 
 struct Earthquake {
     std::string state;
@@ -16,19 +85,8 @@ struct Earthquake {
     double latitude;
 };
 
-bool isState(const std::string& name) {
-    // List of valid state names for the United States
-    static const std::unordered_set<std::string> validStates = {
-        "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware",
-        "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
-        "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi",
-        "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico",
-        "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
-        "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
-        "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
-    };
-
-    return validStates.find(name) != validStates.end();
+bool isState(const std::string& name, const HashSet<std::string>& validStates) {
+    return validStates.contains(name);
 }
 
 int main() {
@@ -42,6 +100,23 @@ int main() {
 
     std::string line;
     std::getline(file, line); // Skip header line
+
+    HashSet<std::string> validStatesSet;
+
+    // Insert valid state names into the set
+    static const std::vector<std::string> validStatesList = {
+        "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware",
+        "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
+        "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi",
+        "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico",
+        "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
+        "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont",
+        "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+    };
+
+    for (const auto& state : validStatesList) {
+        validStatesSet.insert(state);
+    }
 
     while (std::getline(file, line)) {
         std::stringstream ss(line);
@@ -76,7 +151,9 @@ int main() {
         }
 
         // Check if earthquake data meets all criteria
-        if (isState(eq.state) && eq.magnitude >= 3.0 && eq.data_type == "earthquake") {
+        if (isState(eq.state, validStatesSet) && eq.magnitude >= 4.0 && eq.data_type == "earthquake") {
+            if (eq.state == "Georgia" && eq.latitude > 40)
+                continue;
             earthquakes.push_back(eq);
         }
     }
