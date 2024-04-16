@@ -33,7 +33,7 @@ geographical map.
 
 Distribution of Responsibility and Roles:
 
-● Dylan Everett: Ensuring user-friendly and accessible interface of the application.
+● Shayan Akhoondan & Jair Alcivar: Ensuring user-friendly and accessible interface of the application.
 Integrate various visual APIs to enhance data visualization to make analysis results
 comprehensible and visually appealing to users.
 
