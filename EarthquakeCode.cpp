@@ -6,20 +6,19 @@
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
+#include <iomanip>
 
-using namespace std;
-
-struct Earthquake 
-{
-    string state;
+struct Earthquake {
+    std::string state;
     double magnitude;
+    std::string data_type;
+    double longitude;
+    double latitude;
 };
 
-bool isState(const string& name) 
-{
+bool isState(const std::string& name) {
     // List of valid state names for the United States
-    static const unordered_set<string> validStates = 
-    {
+    static const std::unordered_set<std::string> validStates = {
         "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware",
         "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky",
         "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi",
@@ -32,60 +31,81 @@ bool isState(const string& name)
     return validStates.find(name) != validStates.end();
 }
 
-int main() 
-{
-    ifstream file("earthquake_data.csv");
-    unordered_map<string, int> state_counts;
+int main() {
+    std::ifstream file("earthquake_data.csv");
+    std::vector<Earthquake> earthquakes;
 
-    if (!file.is_open()) 
-    {
-        cerr << "Error opening file!" << endl;
+    if (!file.is_open()) {
+        std::cerr << "Error opening file!" << std::endl;
         return 1;
     }
 
-    string line;
-    getline(file, line); // Skip header line
+    std::string line;
+    std::getline(file, line); // Skip header line
 
-    while (getline(file, line)) 
-    {
-        stringstream ss(line);
-        string field;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string field;
         Earthquake eq;
 
-        // Reading state from the first column
-        if (getline(ss, eq.state, ',')) 
-        {
-            // Removing leading and trailing whitespace from state name
+        // Read state (first column)
+        if (std::getline(ss, eq.state, ',')) {
             eq.state.erase(0, eq.state.find_first_not_of(" \t\n\r\f\v"));
             eq.state.erase(eq.state.find_last_not_of(" \t\n\r\f\v") + 1);
         }
 
-        // Reading magnitude from the second column
-        if (getline(ss, field, ',')) 
-        {
-            eq.magnitude = stod(field);
+        // Read magnitude (second column)
+        if (std::getline(ss, field, ',')) {
+            eq.magnitude = std::stod(field);
         }
 
-        // Filter earthquakes for United States and magnitude >= 2.5
-        if (isState(eq.state) && eq.magnitude >= 2.5) 
-        {
-            state_counts[eq.state]++;
+        // Read data type (third column)
+        if (std::getline(ss, eq.data_type, ',')) {
+            eq.data_type.erase(0, eq.data_type.find_first_not_of(" \t\n\r\f\v"));
+            eq.data_type.erase(eq.data_type.find_last_not_of(" \t\n\r\f\v") + 1);
+        }
+
+        // Read longitude (fourth column)
+        if (std::getline(ss, field, ',')) {
+            eq.longitude = std::stod(field);
+        }
+
+        // Read latitude (fifth column)
+        if (std::getline(ss, field, ',')) {
+            eq.latitude = std::stod(field);
+        }
+
+        // Check if earthquake data meets all criteria
+        if (isState(eq.state) && eq.magnitude >= 3.0 && eq.data_type == "earthquake") {
+            earthquakes.push_back(eq);
         }
     }
 
-    // Sorting the states by frequency in descending order
-    vector<pair<string, int>> sorted_states(state_counts.begin(), state_counts.end());
-    sort(sorted_states.begin(), sorted_states.end(), [](const auto& a, const auto& b) 
-    {
-        return a.second > b.second;
-    });
-
-    // Outputting the states in order by frequency
-    cout << "States ordered by frequency of earthquakes:\n";
-    for (const auto& state : sorted_states) 
-    {
-        cout << state.first << " - " << state.second << " earthquakes\n";
+    // Output filtered earthquake data to JSON file
+    std::ofstream jsonFile("earthquake_data.json");
+    if (!jsonFile.is_open()) {
+        std::cerr << "Error opening JSON file for writing!" << std::endl;
+        return 1;
     }
+
+    jsonFile << "[\n";
+    for (size_t i = 0; i < earthquakes.size(); ++i) {
+        const Earthquake& eq = earthquakes[i];
+        jsonFile << "    {\n";
+        jsonFile << "        \"state\": \"" << eq.state << "\",\n";
+        jsonFile << "        \"magnitude\": " << eq.magnitude << ",\n";
+        jsonFile << "        \"longitude\": " << eq.longitude << ",\n";
+        jsonFile << "        \"latitude\": " << eq.latitude << "\n";
+        jsonFile << "    }";
+        if (i < earthquakes.size() - 1) {
+            jsonFile << ",";
+        }
+        jsonFile << "\n";
+    }
+    jsonFile << "]\n";
+
+    jsonFile.close();
+    std::cout << "Successfully wrote filtered earthquake data to earthquake_data.json" << std::endl;
 
     return 0;
 }
